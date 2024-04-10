@@ -19,13 +19,6 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Install Node.js and npm
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org/'
-          cache: 'npm'
-
       - name: Checkout
         uses: actions/checkout@v3
 

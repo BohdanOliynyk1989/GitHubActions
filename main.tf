@@ -21,32 +21,44 @@ resource "aws_dynamodb_table" "users" {
   }
 }
 
-resource "null_resource" "lambda_dependencies" {
+data "archive_file" "main" {
+  type        = "zip"
+  source_dir  = "apps/users/dist/users/src"
+  output_path = "${path.module}/.terraform/archive_files/users.zip"
+
+  depends_on = [null_resource.main]
+}
+
+resource "null_resource" "main" {
+
   triggers = {
-    always_trigger = timestamp()
+    updated_at = timestamp()
   }
 
   provisioner "local-exec" {
-    working_dir = "./"
-    command     = "npm install && mkdir -p nodejs && ls && cp -r node_modules nodejs/"
+    command = <<EOF
+    yarn
+    EOF
+
+    working_dir = "${path.module}/apps/users/dist/users/src"
   }
 }
 
-resource "aws_lambda_layer_version" "example_common_node_modules" {
-  filename = data.archive_file.lambda_bundle.output_path
-  layer_name = "test-dependency-layer"
+# resource "aws_lambda_layer_version" "example_common_node_modules" {
+#   filename = data.archive_file.lambda_bundle.output_path
+#   layer_name = "test-dependency-layer"
 
-  compatible_runtimes = ["nodejs20.x"]
-}
+#   compatible_runtimes = ["nodejs20.x"]
+# }
 
-data "archive_file" "lambda_bundle" {
-  type = "zip"
+# data "archive_file" "lambda_bundle" {
+#   type = "zip"
 
-  source_dir = "./nodejs/"
-  output_path = "./dependency-layer.zip"
+#   source_dir = "./nodejs/"
+#   output_path = "./dependency-layer.zip"
 
-  depends_on = [ null_resource.lambda_dependencies ]
-}
+#   depends_on = [ null_resource.lambda_dependencies ]
+# }
 
 # data "archive_file" "lambda_users" {
 #   type = "zip"
@@ -55,25 +67,26 @@ data "archive_file" "lambda_bundle" {
 #   output_path = "${path.module}/apps/users/dist/users/users.zip"
 # }
 
-resource "aws_s3_object" "lambda_bundle" {
-  bucket = aws_s3_bucket.lambda_bucket.id
+# resource "aws_s3_object" "lambda_bundle" {
+#   bucket = aws_s3_bucket.lambda_bucket.id
 
-  key    = "dependency-layer.zip"
-  source = data.archive_file.lambda_bundle.output_path
+#   key    = "dependency-layer.zip"
+#   source = data.archive_file.lambda_bundle.output_path
 
-  etag = filemd5(data.archive_file.lambda_bundle.output_path)
-}
+#   etag = filemd5(data.archive_file.lambda_bundle.output_path)
+# }
 
 resource "aws_lambda_function" "get_user" {
+  filename      = "${path.module}/.terraform/archive_files/users.zip"
   function_name = "get_user"
   handler       = "dist/users/src/main.getUsers"
   runtime       = "nodejs20.x"
   role          = aws_iam_role.lambda_exec.arn
 
-  s3_bucket = aws_s3_bucket.lambda_bucket.id
-  s3_key    = aws_s3_object.lambda_bundle.key
+  # s3_bucket = aws_s3_bucket.lambda_bucket.id
+  # s3_key    = aws_s3_object.lambda_bundle.key
 
-  source_code_hash = data.archive_file.lambda_bundle.output_base64sha256
+  source_code_hash = data.archive_file.main.output_base64sha256
 
   environment {
     variables = {
