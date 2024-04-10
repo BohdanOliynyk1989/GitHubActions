@@ -32,13 +32,6 @@ resource "null_resource" "lambda_dependencies" {
   }
 }
 
-data "null_data_source" "wait_for_lambda_exporter" {
-  inputs = {
-    lambda_dependency_id = "${null_resource.lambda_dependencies.id}"
-    source_dir           = "${path.module}/"
-  }
-}
-
 resource "aws_lambda_layer_version" "example_common_node_modules" {
   filename = data.archive_file.lambda_bundle.output_path
   layer_name = "test-dependency-layer"
@@ -49,18 +42,18 @@ resource "aws_lambda_layer_version" "example_common_node_modules" {
 data "archive_file" "lambda_bundle" {
   type = "zip"
 
-  source_dir = "${path.module}/dependency-layer"
+  source_dir = "${path.module}/"
   output_path = "${path.module}/dependency-layer/dependency-layer.zip"
 
   depends_on = [ null_resource.lambda_dependencies ]
 }
 
-data "archive_file" "lambda_users" {
-  type = "zip"
+# data "archive_file" "lambda_users" {
+#   type = "zip"
 
-  source_dir  = "${path.module}/apps/users/dist/users/src"
-  output_path = "${path.module}/apps/users/dist/users/users.zip"
-}
+#   source_dir  = "${path.module}/apps/users/dist/users/src"
+#   output_path = "${path.module}/apps/users/dist/users/users.zip"
+# }
 
 resource "aws_s3_object" "lambda_bundle" {
   bucket = aws_s3_bucket.lambda_bucket.id
