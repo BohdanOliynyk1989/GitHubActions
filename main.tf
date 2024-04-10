@@ -37,7 +37,7 @@ resource "null_resource" "main" {
 
   provisioner "local-exec" {
     command = <<EOF
-    yarn
+    /usr/local/bin/yarn
     EOF
 
     working_dir = "${path.module}/apps/users/dist/users/src"
