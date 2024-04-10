@@ -19,26 +19,31 @@ jobs:
     permissions:
       contents: read
     steps:
-    - name: Install CDKTF CLI
-      run: npm install
-      env:
-          CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: provider CDKTF
-      run: cdktf provider add "aws@~>4.0" random
-      env:
-          CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
 
-    - name: list CDKTF
-      run: cdktf list
-      env:
-          CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
+      - name: Install CDKTF CLI
+        run: npm install -g cdktf-cli
+        working-directory: ${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}
 
-    - name: Deploy CDKTF
-      run: cdktf deploy
-      env:
-        CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
-        CDKTF_STACK: 'lambda-hello-name'
+      - name: provider CDKTF
+        run: cdktf provider add "aws@~>4.0" random
+
+      - name: list CDKTF
+        run: cdktf list
+        env:
+          CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"  # вказати шлях до кореневої папки
+
+      - name: Deploy CDKTF
+        run: cdktf deploy --directory $CDKTF_DIRECTORY
+        env:
+          CDKTF_STACK: 'lambda-hello-name'
+
       # - name: Checkout
       #   uses: actions/checkout@v3
 
