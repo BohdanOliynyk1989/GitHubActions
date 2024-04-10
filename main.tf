@@ -42,7 +42,7 @@ resource "aws_lambda_function" "get_user" {
   function_name = "get_user"
   handler       = "dist/users/src/main.getUsers"
   runtime       = "nodejs14.x"
-  role          = aws_iam_role.lambda_role_users.arn
+  role          = aws_iam_role.lambda_exec.arn
 
   s3_bucket = aws_s3_bucket.lambda_bucket.id
   s3_key    = aws_s3_object.lambda_users.key
@@ -145,7 +145,7 @@ resource "aws_apigatewayv2_integration" "get_user" {
 resource "aws_apigatewayv2_route" "get_user" {
   api_id = aws_apigatewayv2_api.lambda.id
 
-  route_key = "GET /get_user"
+  route_key = "GET /get_user/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.get_user.id}"
 }
 
