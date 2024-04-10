@@ -1,0 +1,12 @@
+org: bohdanoliynyk1989
+app: test
+service: test
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  function1:
+    handler: index.handler
