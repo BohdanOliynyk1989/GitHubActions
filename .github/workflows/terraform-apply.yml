@@ -22,8 +22,11 @@ jobs:
     - name: Install CDKTF CLI
       run: npm install -g cdktf-cli
 
-    - name: Build CDKTF
-      run: cdktf get && cdktf synth
+    - name: provider CDKTF
+      run: cdktf provider add "aws@~>4.0" random
+
+    - name: list CDKTF
+      run: cdktf list
 
     - name: Deploy CDKTF
       run: cdktf deploy
