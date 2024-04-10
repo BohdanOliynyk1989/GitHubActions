@@ -41,7 +41,7 @@ resource "aws_s3_object" "lambda_users" {
 resource "aws_lambda_function" "get_user" {
   function_name = "get_user"
   handler       = "dist/users/src/main.getUsers"
-  runtime       = "nodejs14.x"
+  runtime       = "nodejs20.x"
   role          = aws_iam_role.lambda_exec.arn
 
   s3_bucket = aws_s3_bucket.lambda_bucket.id
