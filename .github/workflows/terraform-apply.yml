@@ -36,9 +36,6 @@ jobs:
 
     - name: Deploy CDKTF
       run: cdktf deploy
-      with:
-          workspace: ${{ env.TF_WORKSPACE }}
-          directory: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
       env:
         CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
         CDKTF_STACK: 'lambda-hello-name'
