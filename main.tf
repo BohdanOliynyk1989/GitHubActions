@@ -33,20 +33,20 @@ resource "aws_dynamodb_table" "users" {
 # }
 
 resource "aws_lambda_layer_version" "example_common_node_modules" {
-  filename = data.archive_file.lambda_bundle.output_path
+  filename = "./dependency-layer.zip"
   layer_name = "test-dependency-layer"
 
   compatible_runtimes = ["nodejs20.x"]
 }
 
-data "archive_file" "lambda_bundle" {
-  type = "zip"
+# data "archive_file" "lambda_bundle" {
+#   type = "zip"
 
-  source_dir = "./nodejs/"
-  output_path = "./dependency-layer.zip"
+#   source_dir = "./nodejs/"
+#   output_path = "./dependency-layer.zip"
 
-  # depends_on = [ null_resource.lambda_dependencies ]
-}
+#   # depends_on = [ null_resource.lambda_dependencies ]
+# }
 
 # data "archive_file" "lambda_users" {
 #   type = "zip"
@@ -59,9 +59,9 @@ resource "aws_s3_object" "lambda_bundle" {
   bucket = aws_s3_bucket.lambda_bucket.id
 
   key    = "dependency-layer.zip"
-  source = data.archive_file.lambda_bundle.output_path
+  source = "./dependency-layer.zip"
 
-  etag = filemd5(data.archive_file.lambda_bundle.output_path)
+  etag = filemd5("./dependency-layer.zip")
 }
 
 resource "aws_lambda_function" "get_user" {
