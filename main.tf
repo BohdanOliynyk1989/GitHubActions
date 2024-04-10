@@ -21,6 +21,30 @@ resource "aws_dynamodb_table" "users" {
   }
 }
 
+resource "null_resource" "lambda_dependencies" {
+ provisioner "local-exec" {
+    command = "cd ${path.module} && npm install"
+  }
+
+  triggers = {
+    package = sha256(file("${path.module}/package.json"))
+    lock = sha256(file("${path.module}/package-lock.json"))
+    node = sha256(join("",fileset(path.module, "/**/*.js")))
+  }
+}
+
+data "null_data_source" "wait_for_lambda_exporter" {
+  inputs = {
+    lambda_dependency_id = "${null_resource.lambda_dependencies.id}"
+    source_dir           = "${path.module}/"
+  }
+}
+
+data "archive_file" "lambda_bundle" {
+  output_path = "${path.module}/lambda-bundle.zip"
+  source_dir  = "${data.null_data_source.wait_for_lambda_exporter.outputs["source_dir"]}"
+  type        = "zip"
+}
 
 data "archive_file" "lambda_users" {
   type = "zip"
@@ -29,13 +53,13 @@ data "archive_file" "lambda_users" {
   output_path = "${path.module}/apps/users/dist/users/users.zip"
 }
 
-resource "aws_s3_object" "lambda_users" {
+resource "aws_s3_object" "lambda_bundle" {
   bucket = aws_s3_bucket.lambda_bucket.id
 
-  key    = "users.zip"
-  source = data.archive_file.lambda_users.output_path
+  key    = "lambda-bundle.zip"
+  source = data.archive_file.lambda_bundle.output_path
 
-  etag = filemd5(data.archive_file.lambda_users.output_path)
+  etag = filemd5(data.archive_file.lambda_bundle.output_path)
 }
 
 resource "aws_lambda_function" "get_user" {
@@ -45,9 +69,9 @@ resource "aws_lambda_function" "get_user" {
   role          = aws_iam_role.lambda_exec.arn
 
   s3_bucket = aws_s3_bucket.lambda_bucket.id
-  s3_key    = aws_s3_object.lambda_users.key
+  s3_key    = aws_s3_object.lambda_bundle.key
 
-  source_code_hash = data.archive_file.lambda_users.output_base64sha256
+  source_code_hash = data.archive_file.lambda_bundle.output_base64sha256
 
   environment {
     variables = {
