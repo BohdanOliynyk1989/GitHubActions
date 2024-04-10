@@ -27,7 +27,7 @@ resource "null_resource" "lambda_dependencies" {
   }
 
   provisioner "local-exec" {
-    working_dir = "${path.module}/dependency-layer"
+    working_dir = "${path.module}/"
     command     = "npm install && mkdir -p nodejs && ls && cp -r node_modules nodejs/"
   }
 }
@@ -50,7 +50,7 @@ data "archive_file" "lambda_bundle" {
   type = "zip"
 
   source_dir = "${path.module}/dependency-layer"
-  output_path = "${path.module}/lambda-archive/dependency-layer.zip"
+  output_path = "${path.module}/dependency-layer/dependency-layer.zip"
 
   depends_on = [ null_resource.lambda_dependencies ]
 }
