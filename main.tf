@@ -27,7 +27,7 @@ resource "null_resource" "lambda_dependencies" {
   }
 
   provisioner "local-exec" {
-    working_dir = "${path.module}/../lambdas/dependency-layer"
+    working_dir = "${path.module}/dependency-layer"
     command     = "npm install && mkdir -p nodejs && ls && cp -r node_modules nodejs/"
   }
 }
@@ -49,7 +49,7 @@ resource "aws_lambda_layer_version" "example_common_node_modules" {
 data "archive_file" "lambda_bundle" {
   type = "zip"
 
-  source_dir = "${path.module}/../lambdas/dependency-layer"
+  source_dir = "${path.module}/dependency-layer"
   output_path = "${path.module}/lambda-archive/dependency-layer.zip"
 
   depends_on = [ null_resource.lambda_dependencies ]
@@ -65,7 +65,7 @@ data "archive_file" "lambda_users" {
 resource "aws_s3_object" "lambda_bundle" {
   bucket = aws_s3_bucket.lambda_bucket.id
 
-  key    = "lambda-bundle.zip"
+  key    = "dependency-layer.zip"
   source = data.archive_file.lambda_bundle.output_path
 
   etag = filemd5(data.archive_file.lambda_bundle.output_path)
