@@ -21,28 +21,29 @@ resource "aws_dynamodb_table" "users" {
   }
 }
 
-data "archive_file" "main" {
-  type        = "zip"
-  source_dir  = "apps/users/dist/users/src"
-  output_path = "${path.module}/.terraform/archive_files/users.zip"
+# data "archive_file" "main" {
+#   type        = "zip"
+#   source_dir  = "apps/users/dist/users/src"
+#   output_path = "${path.module}/.terraform/archive_files/users.zip"
 
-  depends_on = [null_resource.main]
-}
+#   depends_on = [null_resource.main]
+# }
 
-resource "null_resource" "main" {
+# resource "null_resource" "main" {
 
-  triggers = {
-    updated_at = timestamp()
-  }
+#   triggers = {
+#     updated_at = timestamp()
+#   }
 
-  provisioner "local-exec" {
-    command = <<EOF
-    /usr/local/bin/yarn
-    EOF
+  # provisioner "local-exec" {
+  #   command = <<EOF
+  #   /usr/local/bin/yarn
+  #   EOF
 
-    working_dir = "${path.module}/apps/users/dist/users/src"
-  }
-}
+
+#     working_dir = "${path.module}/apps/users/dist/users/src"
+#   }
+# }
 
 # resource "aws_lambda_layer_version" "example_common_node_modules" {
 #   filename = data.archive_file.lambda_bundle.output_path
@@ -77,16 +78,14 @@ resource "null_resource" "main" {
 # }
 
 resource "aws_lambda_function" "get_user" {
-  filename      = "${path.module}/.terraform/archive_files/users.zip"
+  # filename      = "${path.module}/.terraform/archive_files/users.zip"
   function_name = "get_user"
-  handler       = "dist/users/src/main.getUsers"
+  handler       = "./dist/apps/users/main.getUsers"
   runtime       = "nodejs20.x"
   role          = aws_iam_role.lambda_exec.arn
 
   # s3_bucket = aws_s3_bucket.lambda_bucket.id
   # s3_key    = aws_s3_object.lambda_bundle.key
-
-  source_code_hash = data.archive_file.main.output_base64sha256
 
   environment {
     variables = {
