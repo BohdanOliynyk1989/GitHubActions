@@ -27,7 +27,6 @@ resource "null_resource" "lambda_dependencies" {
   }
 
   triggers = {
-    index = sha256(file("${path.module}/index.js"))
     package = sha256(file("${path.module}/package.json"))
     lock = sha256(file("${path.module}/package-lock.json"))
     node = sha256(join("",fileset(path.module, "src/**/*.js")))
@@ -70,9 +69,9 @@ resource "aws_lambda_function" "get_user" {
   role          = aws_iam_role.lambda_exec.arn
 
   s3_bucket = aws_s3_bucket.lambda_bucket.id
-  s3_key    = aws_s3_object.lambda_users.key
+  s3_key    = aws_s3_object.lambda.key
 
-  source_code_hash = data.archive_file.lambda_users.output_base64sha256
+  source_code_hash = data.archive_file.lambda.output_base64sha256
 
   environment {
     variables = {
