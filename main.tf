@@ -22,41 +22,43 @@ resource "aws_dynamodb_table" "users" {
 }
 
 resource "null_resource" "lambda_dependencies" {
- provisioner "local-exec" {
-    command = "cd ${path.module} && npm install"
+  triggers = {
+    always_trigger = timestamp()
   }
 
-  triggers = {
-    package = sha256(file("${path.module}/package.json"))
-    lock = sha256(file("${path.module}/package-lock.json"))
-    node = sha256(join("",fileset(path.module, "/**/*.js")))
+  provisioner "local-exec" {
+    working_dir = "./"
+    command     = "npm install && mkdir -p nodejs && ls && cp -r node_modules nodejs/"
   }
 }
 
-data "null_data_source" "wait_for_lambda_exporter" {
-  inputs = {
-    lambda_dependency_id = "${null_resource.lambda_dependencies.id}"
-    source_dir           = "${path.module}/"
-  }
+resource "aws_lambda_layer_version" "example_common_node_modules" {
+  filename = data.archive_file.lambda_bundle.output_path
+  layer_name = "test-dependency-layer"
+
+  compatible_runtimes = ["nodejs20.x"]
 }
 
 data "archive_file" "lambda_bundle" {
-  output_path = "${path.module}/lambda-bundle.zip"
-  source_dir  = "${data.null_data_source.wait_for_lambda_exporter.outputs["source_dir"]}"
-  type        = "zip"
-}
-
-data "archive_file" "lambda_users" {
   type = "zip"
 
-  source_dir  = "${path.module}/apps/users/dist/users/src"
-  output_path = "${path.module}/apps/users/dist/users/users.zip"
+  source_dir = "./nodejs"
+  output_path = "./dependency-layer/dependency-layer.zip"
+
+  depends_on = [ null_resource.lambda_dependencies ]
 }
+
+# data "archive_file" "lambda_users" {
+#   type = "zip"
+
+#   source_dir  = "${path.module}/apps/users/dist/users/src"
+#   output_path = "${path.module}/apps/users/dist/users/users.zip"
+# }
 
 resource "aws_s3_object" "lambda_bundle" {
   bucket = aws_s3_bucket.lambda_bucket.id
 
-  key    = "lambda-bundle.zip"
+  key    = "dependency-layer.zip"
   source = data.archive_file.lambda_bundle.output_path
 
   etag = filemd5(data.archive_file.lambda_bundle.output_path)
