@@ -1,0 +1,93 @@
+service: users
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-common-excludes
+  - serverless-plugin-include-dependencies
+
+package:
+  excludeDevDependencies: false #setted to false by serverless-plugin-include-dependencies suggestion
+  patterns:
+    - '!test/**'
+    - '!insomnia/**'
+    - '!docst/**'
+
+custom:
+    includeDependencies:
+      enableCaching: true
+
+    esbuild: 
+      bundle: true
+      minify: false
+      sourcemap: true
+      exclude: aws-sdk
+      target: node18
+      define: 'require.resolve: undefined'
+      platform: node
+      concurrency: 10
+
+    serverless-offline:
+        httpPort: 3003
+        lambdaPort: 3005
+
+functions: 
+  getUser:
+    handler: dist/users/src/main.getUser
+    events:
+      - http:
+          method: GET
+          path: /users/{id}
+          request: 
+            parameters: 
+              paths: 
+                id: true
+  getUsers:
+    handler: dist/users/src/main.getUsers
+    events:
+      - http:
+          method: GET
+          path: /users
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: nodejs20.x
+  apiGateway:
+    shouldStartNameWithService: true
+  stage: dev
+  environment:
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    NODE_OPTIONS: --enable-source-maps --stack-trace-limit=1000
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+      
+  deploymentBucket:
+    name: testbucket12001010
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan  
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+      Resource: 
+        Fn::Join:
+          - ''
+          - - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/"
+            - ${self:provider.environment.DYNAMODB_TABLE}
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
