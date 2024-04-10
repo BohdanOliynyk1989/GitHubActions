@@ -6,7 +6,7 @@ on:
 
 jobs:
   close:
-    if: github.repository == 'hashicorp-education/learn-terraform-github-actions'
+    if: github.repository == 'hashicorp-education/GitHubActions'
     runs-on: ubuntu-latest
     steps:
     - uses: superbrothers/close-pull-request@v3
