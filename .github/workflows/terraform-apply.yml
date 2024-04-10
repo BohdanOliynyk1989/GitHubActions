@@ -9,7 +9,7 @@ env:
   TF_CLOUD_ORGANIZATION: "my-test-4ksoft-org"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
   TF_WORKSPACE: "my-workspace-api"
-  CONFIG_DIRECTORY: "../../cdktf/"
+  CONFIG_DIRECTORY: "./cdktf/"
 
 jobs:
   terraform:
@@ -21,15 +21,27 @@ jobs:
     steps:
     - name: Install CDKTF CLI
       run: npm install
+      with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
 
     - name: provider CDKTF
       run: cdktf provider add "aws@~>4.0" random
+      with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
 
     - name: list CDKTF
       run: cdktf list
+      with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
 
     - name: Deploy CDKTF
       run: cdktf deploy
+      with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
       env:
         CDKTF_STACK: 'lambda-hello-name'
       # - name: Checkout
