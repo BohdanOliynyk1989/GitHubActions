@@ -8,7 +8,7 @@ on:
 env:
   TF_CLOUD_ORGANIZATION: "my-test-4ksoft-org"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
-  TF_WORKSPACE: "GitHubActions"
+  TF_WORKSPACE: "my-workspace-api"
   CONFIG_DIRECTORY: "./"
 
 jobs:
