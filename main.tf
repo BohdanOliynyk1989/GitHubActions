@@ -43,7 +43,7 @@ data "archive_file" "lambda_bundle" {
   type = "zip"
 
   source_dir = "./nodejs/"
-  output_path = "./dependency-layer/dependency-layer.zip"
+  output_path = "./dependency-layer.zip"
 
   depends_on = [ null_resource.lambda_dependencies ]
 }
