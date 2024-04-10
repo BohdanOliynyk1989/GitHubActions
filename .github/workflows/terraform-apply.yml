@@ -9,7 +9,7 @@ env:
   TF_CLOUD_ORGANIZATION: "my-test-4ksoft-org"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
   TF_WORKSPACE: "my-workspace-api"
-  CONFIG_DIRECTORY: "./"
+  CONFIG_DIRECTORY: "../../cdktf/"
 
 jobs:
   terraform:
@@ -20,7 +20,7 @@ jobs:
       contents: read
     steps:
     - name: Install CDKTF CLI
-      run: npm install -g cdktf-cli
+      run: npm install
 
     - name: provider CDKTF
       run: cdktf provider add "aws@~>4.0" random
