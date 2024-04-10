@@ -41,7 +41,7 @@ data "null_data_source" "wait_for_lambda_exporter" {
 
 resource "aws_lambda_layer_version" "example_common_node_modules" {
   filename = data.archive_file.lambda_bundle.output_path
-  layer_name = "${module.lambda_dependencies.id}-dependency-layer"
+  layer_name = "test-dependency-layer"
 
   compatible_runtimes = ["nodejs20.x"]
 }
