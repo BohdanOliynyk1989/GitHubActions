@@ -21,32 +21,32 @@ resource "aws_dynamodb_table" "users" {
   }
 }
 
-# resource "null_resource" "lambda_dependencies" {
-#   triggers = {
-#     always_trigger = timestamp()
-#   }
+resource "null_resource" "lambda_dependencies" {
+  triggers = {
+    always_trigger = timestamp()
+  }
 
-#   provisioner "local-exec" {
-#     working_dir = "./"
-#     command     = "npm install && mkdir -p nodejs && ls && cp -r node_modules nodejs/"
-#   }
-# }
+  provisioner "local-exec" {
+    working_dir = "./"
+    command     = "npm install && mkdir -p nodejs && ls && cp -r node_modules nodejs/"
+  }
+}
 
 resource "aws_lambda_layer_version" "example_common_node_modules" {
-  filename = "./dependency-layer.zip"
+  filename = data.archive_file.lambda_bundle.output_path
   layer_name = "test-dependency-layer"
 
   compatible_runtimes = ["nodejs20.x"]
 }
 
-# data "archive_file" "lambda_bundle" {
-#   type = "zip"
+data "archive_file" "lambda_bundle" {
+  type = "zip"
 
-#   source_dir = "./nodejs/"
-#   output_path = "./dependency-layer.zip"
+  source_dir = "./nodejs/"
+  output_path = "./dependency-layer.zip"
 
-#   # depends_on = [ null_resource.lambda_dependencies ]
-# }
+  depends_on = [ null_resource.lambda_dependencies ]
+}
 
 # data "archive_file" "lambda_users" {
 #   type = "zip"
@@ -59,9 +59,9 @@ resource "aws_s3_object" "lambda_bundle" {
   bucket = aws_s3_bucket.lambda_bucket.id
 
   key    = "dependency-layer.zip"
-  source = "./dependency-layer.zip"
+  source = data.archive_file.lambda_bundle.output_path
 
-  etag = filemd5("./dependency-layer.zip")
+  etag = filemd5(data.archive_file.lambda_bundle.output_path)
 }
 
 resource "aws_lambda_function" "get_user" {
