@@ -87,8 +87,6 @@ resource "aws_lambda_function" "get_user" {
   # s3_bucket = aws_s3_bucket.lambda_bucket.id
   # s3_key    = aws_s3_object.lambda_bundle.key
 
-  source_code_hash = data.archive_file.main.output_base64sha256
-
   environment {
     variables = {
       DYNAMODB_TABLE = aws_dynamodb_table.users.name
