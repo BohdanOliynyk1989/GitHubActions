@@ -33,6 +33,8 @@ jobs:
 
       - name: provider CDKTF
         run: cdktf provider add "aws@~>4.0" random
+        env:
+          CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"  # вказати шлях до кореневої папки
 
       - name: list CDKTF
         run: cdktf list
