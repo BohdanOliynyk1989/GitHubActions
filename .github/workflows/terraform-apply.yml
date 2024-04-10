@@ -22,51 +22,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - name: Upload Configuration
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        id: apply-upload
         with:
-          node-version: '14'
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: ${{ env.CONFIG_DIRECTORY }}
 
-      - name: Install CDKTF CLI
-        run: npm install -g cdktf-cli
-        working-directory: ${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}
+      - name: Create Apply Run
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        id: apply-run
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
 
-      - name: provider CDKTF
-        run: cdktf provider add "aws@~>4.0" random
-        env:
-          CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"  # вказати шлях до кореневої папки
-
-      - name: list CDKTF
-        run: cdktf list
-        env:
-          CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"  # вказати шлях до кореневої папки
-
-      - name: Deploy CDKTF
-        run: cdktf deploy --directory $CDKTF_DIRECTORY
-        env:
-          CDKTF_STACK: 'lambda-hello-name'
-
-      # - name: Checkout
-      #   uses: actions/checkout@v3
-
-      # - name: Upload Configuration
-      #   uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
-      #   id: apply-upload
-      #   with:
-      #     workspace: ${{ env.TF_WORKSPACE }}
-      #     directory: ${{ env.CONFIG_DIRECTORY }}
-
-      # - name: Create Apply Run
-      #   uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
-      #   id: apply-run
-      #   with:
-      #     workspace: ${{ env.TF_WORKSPACE }}
-      #     configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
-
-      # - name: Apply
-      #   uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
-      #   if: fromJSON(steps.apply-run.outputs.payload).data.attributes.actions.IsConfirmable
-      #   id: apply
-      #   with:
-      #     run: ${{ steps.apply-run.outputs.run_id }}
-      #     comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
+      - name: Apply
+        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+        if: fromJSON(steps.apply-run.outputs.payload).data.attributes.actions.IsConfirmable
+        id: apply
+        with:
+          run: ${{ steps.apply-run.outputs.run_id }}
+          comment: "Apply Run from GitHub Actions CI ${{ github.sha }}"
