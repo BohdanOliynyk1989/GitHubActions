@@ -21,21 +21,18 @@ jobs:
     steps:
     - name: Install CDKTF CLI
       run: npm install
-      with:
-          workspace: ${{ env.TF_WORKSPACE }}
-          directory: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
+      env:
+          CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
 
     - name: provider CDKTF
       run: cdktf provider add "aws@~>4.0" random
-      with:
-          workspace: ${{ env.TF_WORKSPACE }}
-          directory: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
+      env:
+          CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
 
     - name: list CDKTF
       run: cdktf list
-      with:
-          workspace: ${{ env.TF_WORKSPACE }}
-          directory: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
+      env:
+          CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
 
     - name: Deploy CDKTF
       run: cdktf deploy
@@ -43,6 +40,7 @@ jobs:
           workspace: ${{ env.TF_WORKSPACE }}
           directory: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
       env:
+        CDKTF_DIRECTORY: "${{ github.workspace }}/${{ env.CONFIG_DIRECTORY }}"
         CDKTF_STACK: 'lambda-hello-name'
       # - name: Checkout
       #   uses: actions/checkout@v3
