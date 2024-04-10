@@ -27,7 +27,7 @@ resource "null_resource" "lambda_dependencies" {
   }
 
   provisioner "local-exec" {
-    working_dir = "${path.module}/"
+    working_dir = "./"
     command     = "npm install && mkdir -p nodejs && ls && cp -r node_modules nodejs/"
   }
 }
@@ -42,8 +42,8 @@ resource "aws_lambda_layer_version" "example_common_node_modules" {
 data "archive_file" "lambda_bundle" {
   type = "zip"
 
-  source_dir = "${path.module}/"
-  output_path = "${path.module}/dependency-layer/dependency-layer.zip"
+  source_dir = "./nodejs"
+  output_path = "./dependency-layer/dependency-layer.zip"
 
   depends_on = [ null_resource.lambda_dependencies ]
 }
