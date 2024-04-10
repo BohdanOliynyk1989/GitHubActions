@@ -22,13 +22,13 @@ resource "aws_dynamodb_table" "users" {
 }
 
 resource "null_resource" "lambda_dependencies" {
-  provisioner "local-exec" {
-    command = "cd ${path.module} && npm install"
+ provisioner "local-exec" {
+    command = "cd ${path.module}/src && npm install"
   }
 
   triggers = {
-    package = sha256(file("${path.module}/package.json"))
-    lock = sha256(file("${path.module}/package-lock.json"))
+    package = sha256(file("${path.module}/src/package.json"))
+    lock = sha256(file("${path.module}/src/package-lock.json"))
     node = sha256(join("",fileset(path.module, "src/**/*.js")))
   }
 }
@@ -36,7 +36,7 @@ resource "null_resource" "lambda_dependencies" {
 data "null_data_source" "wait_for_lambda_exporter" {
   inputs = {
     lambda_dependency_id = "${null_resource.lambda_dependencies.id}"
-    source_dir           = "${path.module}/"
+    source_dir           = "${path.module}/src/"
   }
 }
 
